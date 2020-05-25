@@ -388,8 +388,8 @@ var qs = (function(a) {
 })(window.location.search.substr(1).split('&'));
 
 // Get the Cognitive Services key from the querystring
-var key = qs['key'];
-var baseApi = qs['endpoint'];
+var key = "be57f03c2712471eb13b2f8e7f2c35fe"
+var baseApi = "https://workbench-natixis.cognitiveservices.azure.com/spid/v1.0"
 
 // Speaker Recognition API profile configuration - constructs to make management easier
 var Profile = class { constructor (name, profileId) { this.name = name; this.profileId = profileId;}};
