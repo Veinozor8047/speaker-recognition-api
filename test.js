@@ -1,130 +1,3 @@
-
-//#region Speaker Verification methods
-// Get the supported verification phrases
-function getVerificationPhrases() {
-	var phrases = `${baseApi}/verificationPhrases?locale=en-US`;
-
-	var request = new XMLHttpRequest();
-	request.open("GET", phrases, true);
-
-	request.setRequestHeader('Ocp-Apim-Subscription-Key', key);
-
-	request.onload = function(){ console.log(request.responseText); };
-	request.send();
-}
-
-// 1. Start the browser listening, listen for 4 seconds, pass the audio stream to "createVerificationProfile"
-function enrollNewVerificationProfile(){
-	navigator.getUserMedia({audio: true}, function(stream){
-		console.log('I\'m listening... say one of the predefined phrases...');
-		onMediaSuccess(stream, createVerificationProfile, 4);
-	}, onMediaError);
-}
-
-// createVerificationProfile calls the profile endpoint to get a profile Id, then calls enrollProfileAudioForVerification
-function createVerificationProfile(blob){
-	
-	// just check if we've already fully enrolled this profile
-	if (verificationProfile && verificationProfile.profileId) 
-	{
-		if (verificationProfile.remainingEnrollments == 0)
-		{
-			console.log("Verification enrollment already completed");
-			return;
-		} 
-		else 
-		{
-			console.log("Verification enrollments remaining: " + verificationProfile.remainingEnrollments);
-			enrollProfileAudioForVerification(blob, verificationProfile.profileId);
-			return;
-		}
-	}
-
-	var create = `${baseApi}/verificationProfiles`;
-
-	var request = new XMLHttpRequest();
-	request.open("POST", create, true);
-	request.setRequestHeader('Content-Type','application/json');
-	request.setRequestHeader('Ocp-Apim-Subscription-Key', key);
-
-	request.onload = function () {
-		console.log(request.responseText);
-		var json = JSON.parse(request.responseText);
-		var profileId = json.verificationProfileId;
-		verificationProfile.profileId = profileId;
-
-		// Now we can enrol this profile with the profileId
-		enrollProfileAudioForVerification(blob, profileId);
-	};
-
-	request.send(JSON.stringify({'locale' :'en-us'}));
-}
-
-// enrollProfileAudioForVerification enrolls the recorded audio with the new profile Id
-function enrollProfileAudioForVerification(blob, profileId){
-	addAudioPlayer(blob);
-
-	if (profileId == undefined)
-	{
-		console.log("Failed to create a profile for verification; try again");
-		return;
-	}
-	
-	var enroll = `${baseApi}/verificationProfiles/${profileId}/enroll`;
-  
-	var request = new XMLHttpRequest();
-	request.open("POST", enroll, true);
-	request.setRequestHeader('Ocp-Apim-Subscription-Key', key);
-	request.onload = function () {
-		console.log('enrolling');
-		console.log(request.responseText);
-
-		var json = JSON.parse(request.responseText);
-
-		// need 3 successful enrolled chunks of audio per profile id
-		verificationProfile.remainingEnrollments = json.remainingEnrollments;
-		if (verificationProfile.remainingEnrollments == 0) 
-		{
-			console.log("Verification should be enabled!")
-		}
-	};
-  
-	request.send(blob);
-}
-
-// 2. Start the browser listening, listen for 4 seconds, pass the audio stream to "verifyProfile"
-function startListeningForVerification(){
-	if (verificationProfile.profileId){
-		console.log('I\'m listening... say your predefined phrase...');
-		navigator.getUserMedia({audio: true}, function(stream){onMediaSuccess(stream, verifyProfile, 4)}, onMediaError);
-	} else {
-		console.log('No verification profile enrolled yet! Click the other button...');
-	}
-}
-
-// 3. Take the audio and send it to the verification endpoint for the current profile Id
-function verifyProfile(blob){
-	addAudioPlayer(blob);
-
-	var verify = `${baseApi}/verify?verificationProfileId=${verificationProfile.profileId}`;
-  
-	var request = new XMLHttpRequest();
-	request.open("POST", verify, true);
-	
-	request.setRequestHeader('Content-Type','application/json');
-	request.setRequestHeader('Ocp-Apim-Subscription-Key', key);
-  
-	request.onload = function () {
-		console.log('verifying profile');
-
-		// Was it a match?
-		console.log(request.responseText);		
-	};
-  
-	request.send(blob);
-}
-//#endregion
-
 //#region Speaker Identification methods
 // 1. Start the browser listening, listen for 15 seconds, pass the audio stream to "createProfile"
 function enrollNewProfile(){
@@ -263,7 +136,6 @@ function identifyProfile(blob){
 
 		// The response contains a location to poll for status
 		var location = request.getResponseHeader('Operation-Location');
-		console.log("operation id: "+location)
 
 		if (location!=null) {
 			// ping that location to get the identification status
@@ -374,7 +246,7 @@ var thingsToRead = [
 	"If you're seein' things runnin' thru your head \n	Who can you call (ghostbusters)\n	An' invisible man sleepin' in your bed \n	Oh who ya gonna call (ghostbusters) \nI ain't afraid a no ghost \n	I ain't afraid a no ghost \n	Who ya gonna call (ghostbusters) \n	If you're all alone pick up the phone \n	An call (ghostbusters)",
 ];
 
-// vanilla javascript queystring management
+/* // vanilla javascript queystring management
 var qs = (function(a) {
     if (a == "") return {};
     var b = {};
@@ -387,7 +259,7 @@ var qs = (function(a) {
             b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
     }
     return b;
-})(window.location.search.substr(1).split('&'));
+})(window.location.search.substr(1).split('&')); */
 
 // Get the Cognitive Services key from the querystring
 var key = "be57f03c2712471eb13b2f8e7f2c35fe"
@@ -399,7 +271,7 @@ var VerificationProfile = class { constructor (name, profileId) { this.name = na
 var profileIds = [];
 var verificationProfile = new VerificationProfile();
 
-(function () {
+/* (function () {
 	// Cross browser sound recording using the web audio API
 	navigator.getUserMedia = ( navigator.getUserMedia ||
 							navigator.webkitGetUserMedia ||
@@ -423,4 +295,4 @@ var verificationProfile = new VerificationProfile();
 		old(...arguments);
 	}
 	console.error = console.log; 
-})();
+})(); */
